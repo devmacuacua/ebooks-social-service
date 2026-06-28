@@ -64,9 +64,16 @@ export class RabbitMQConsumerService implements OnModuleInit, OnModuleDestroy {
       this.connection = await amqplib.connect(this.rabbitmqUrl);
       this.channel = await this.connection.createChannel();
 
+      const EXCHANGE = 'ebooks.events';
+      await this.channel.assertExchange(EXCHANGE, 'topic', { durable: true });
+
       // Ensure queues exist (durable so they survive broker restarts)
       await this.channel.assertQueue(QUEUE_BOOK_PUBLISHED, { durable: true });
       await this.channel.assertQueue(QUEUE_BOOK_FEATURED, { durable: true });
+
+      // Bind queues to the topic exchange
+      await this.channel.bindQueue(QUEUE_BOOK_PUBLISHED, EXCHANGE, 'book.published');
+      await this.channel.bindQueue(QUEUE_BOOK_FEATURED, EXCHANGE, 'book.featured');
 
       // Process one message at a time per queue
       this.channel.prefetch(1);
