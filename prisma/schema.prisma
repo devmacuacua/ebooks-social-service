@@ -1,0 +1,42 @@
+// Social Media Microservice - Prisma Schema
+// Database: social_db (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SocialNetwork {
+  TWITTER
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+}
+
+enum PostStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+model SocialPost {
+  id          String        @id @default(uuid())
+  bookId      String
+  bookTitle   String
+  network     SocialNetwork
+  status      PostStatus    @default(PENDING)
+  content     String
+  imageUrl    String?
+  externalId  String?
+  publishedAt DateTime?
+  error       String?
+  createdAt   DateTime      @default(now())
+
+  @@index([bookId])
+  @@index([network])
+  @@index([status])
+  @@map("social_posts")
+}
