@@ -51,6 +51,7 @@ export class SocialService {
           status: PostStatus.PENDING,
           content,
           imageUrl: input.imageUrl ?? null,
+          bookUrl: input.url ?? null,
         },
       });
 
@@ -154,6 +155,6 @@ export class SocialService {
     if (post.status !== PostStatus.FAILED) {
       throw new Error(`Post ${id} is not in FAILED state (current: ${post.status})`);
     }
-    return this.publishToNetwork(post, post.imageUrl ?? undefined);
+    return this.publishToNetwork(post, post.imageUrl ?? undefined, post.bookUrl ?? undefined);
   }
 }
