@@ -9,6 +9,7 @@ RUN npm ci --ignore-scripts
 
 # Copy source & build
 COPY tsconfig*.json nest-cli.json ./
+COPY prisma.config.ts ./
 COPY prisma ./prisma
 COPY src ./src
 
@@ -31,6 +32,7 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/dist ./dist
 
 USER appuser
