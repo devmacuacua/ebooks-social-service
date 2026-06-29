@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TwitterService } from './providers/twitter.service';
 import { FacebookService } from './providers/facebook.service';
@@ -26,8 +26,22 @@ export class SocialService {
    * Publish a book to all requested social networks.
    * Creates a SocialPost record per network and updates status after posting.
    */
+  private static readonly SUPPORTED_NETWORKS: SocialNetwork[] = [
+    SocialNetwork.TWITTER,
+    SocialNetwork.FACEBOOK,
+  ];
+
   async publishBook(input: PublishBookInput): Promise<SocialPost[]> {
-    const networks = input.networks ?? [SocialNetwork.TWITTER, SocialNetwork.FACEBOOK];
+    const networks = input.networks ?? SocialService.SUPPORTED_NETWORKS;
+
+    const unsupported = networks.filter(
+      (n) => !SocialService.SUPPORTED_NETWORKS.includes(n),
+    );
+    if (unsupported.length > 0) {
+      throw new BadRequestException(
+        `Networks not yet supported: ${unsupported.join(', ')}. Supported: ${SocialService.SUPPORTED_NETWORKS.join(', ')}`,
+      );
+    }
     const composed = this.postComposer.composeBookPost({
       title: input.title,
       description: input.description,
@@ -89,7 +103,7 @@ export class SocialService {
           break;
 
         default:
-          throw new Error(`Network ${post.network} is not yet implemented`);
+          throw new Error(`Network ${post.network} is not yet supported`);
       }
 
       return await this.prisma.socialPost.update({
